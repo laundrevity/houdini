@@ -1,0 +1,14 @@
+version: '3.0'
+services:
+  box:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app
+    ports:
+      - "1337:1337"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    command: sleep infinity
+    privileged: true
