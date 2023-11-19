@@ -1,8 +1,11 @@
 from termcolor import colored
+from .i_tool import ITool
+from typing import Dict
 import subprocess
+import datetime
 import json
 
-class ShellTool:
+class ShellTool(ITool):
     # Define the schema according to the OpenAI tool specification
     schema = {
         'name': 'shell_tool',
@@ -15,8 +18,25 @@ class ShellTool:
         },
         'required': ['command_json']
     }
+    LOG_FILE = 'shell_audit_log.txt'
 
-    def execute(self, command_json):
+    def log_command(self, command, args, result):
+        """Record command execution details to the audit log."""
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        log_entry = {
+            'timestamp': timestamp,
+            'command': command,
+            'args': args,
+            'stdout': result['stdout'],
+            'stderr': result['stderr'],
+            'returncode': result['returncode']
+        }
+        # Open the log file in append mode and write the log entry
+        with open(self.LOG_FILE, 'a') as f:
+            f.write(json.dumps(log_entry) + '\n')
+    
+
+    def execute(self, command_json: Dict | str):
         # Check if command_json is already a dict and use it directly if so
         if isinstance(command_json, str):
             try:
@@ -57,6 +77,10 @@ class ShellTool:
         except Exception as e:
             result['stderr'] = str(e)
             result['returncode'] = 1
+
+        finally:
+            # Log the command execution details whether successful or not
+            self.log_command(command, args, result)
 
         if result['stdout'].strip():
             print(colored(result['stdout'], 'green'))

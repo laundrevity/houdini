@@ -10,7 +10,9 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     build-essential \
     software-properties-common \
     libcairo2 \
-    libcairo2-dev
+    libcairo2-dev \
+    tshark \
+    libgirepository1.0-dev
 
 # Add the deadsnakes PPA
 RUN add-apt-repository ppa:deadsnakes/ppa

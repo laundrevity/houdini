@@ -9,7 +9,10 @@ file_list = [
     'conftest.py',
     'requirements.txt',
     'main.py',
+    'conftest.py',
+    'agent.py',
     'tools/shell_tool.py',
+    'tools/wireshark_tool.py',
     'tests/test_shell_tool.py'
 ]
 
