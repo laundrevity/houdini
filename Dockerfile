@@ -12,7 +12,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     libcairo2 \
     libcairo2-dev \
     tshark \
-    libgirepository1.0-dev
+    libgirepository1.0-dev \
+    vim
 
 # Add the deadsnakes PPA
 RUN add-apt-repository ppa:deadsnakes/ppa
@@ -41,4 +42,11 @@ ENV PATH="/root/.cargo/bin:$PATH"
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY entrypoint.sh .
+
+# Set the entrypoint script
+RUN chmod +x entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]
+
+# Set the default command
+CMD ["sleep", "infinity"]

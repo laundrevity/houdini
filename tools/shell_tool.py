@@ -13,7 +13,7 @@ class ShellTool(ITool):
         'parameters': {
             'command_json': {
                 'type': 'string',
-                'description': 'JSON-encoded string representing the command to execute, including any arguments. Note that any arguments MUST be provided in a separate, optional `args` keyword. So, for example, if we wanted to list all files we could use the command_json: `{"command": "ls", "args": ["-ltrah"]}'
+                'description': 'JSON-encoded string representing the command to execute, including any arguments. Note that any arguments MUST be provided in a separate, optional `args` keyword. So, for example, if we wanted to list all files we could use the command_json: `{"command": "ls", "args": ["-ltrah"].} Note also that redirection `<` should be used as a separate argument, e.g. command_json: `{"command": "cat", "args": ["foo", ">", "foo.txt"]}`'
             }
         },
         'required': ['command_json']
@@ -51,19 +51,28 @@ class ShellTool(ITool):
         # Extract the command and arguments
         command = command_data.get('command')
         args = command_data.get('args', [])
+        redirect_out = None
 
+        if '>' in args: # detect redirection
+            redirect_index = args.index('>')
+            redirect_out = args[redirect_index + 1] # get output file
+            args = args[:redirect_index] # remove '>' and the filename symbols
+        
         # Execute the command and return its output or error message
         result = {'stdout': '', 'stderr': '', 'returncode': 0}
         try:
-            completed_process = subprocess.run(
-                [command] + args,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=True,
-                text=True
-            )
-            result['stdout'] = completed_process.stdout
-            result['stderr'] = completed_process.stderr
+            if redirect_out:
+                with open(redirect_out, 'w') as fp:
+                    subprocess.run([command] + args, stdout=fp, check=True)
+                result['stdout'] = f'Redirected to file: {redirect_out}'
+            else:
+                self.capture_process = subprocess.Popen(
+                    [command] + args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                result['stdout'], result['std'] = self.capture_process.communicate()
 
         except subprocess.CalledProcessError as e:
             result['stdout'] = e.stdout
